@@ -34,20 +34,20 @@ export default function VirtualTour360() {
   const [activeScene, setActiveScene] = useState<keyof typeof tourData>('teras');
   const currentView = tourData[activeScene];
 
-  const handleSceneChange = (scene: keyof typeof tourData) => {
-    console.log("Pindah ke scene:", scene); // Debugging: cek di console browser
-    setActiveScene(scene);
+  const handleSceneChange = (sceneTarget: keyof typeof tourData) => {
+    setActiveScene(sceneTarget);
   };
 
   return (
     <div className="w-full h-[450px] md:h-[600px] rounded-b-2xl overflow-hidden bg-gray-900 relative">
+      
       {/* Label Navigasi Aktif */}
-      <div className="absolute top-4 left-4 z-20 bg-green-900/80 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase border border-white/20">
+      <div className="absolute top-4 left-4 z-20 bg-green-900/80 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase border border-white/20 shadow-lg">
         📍 {currentView.name}
       </div>
 
       <Pannellum
-        key={activeScene} // PENTING: Memastikan scene lama dibuang dan yang baru dimuat bersih
+        key={activeScene} 
         width="100%"
         height="100%"
         image={currentView.image}
@@ -64,19 +64,23 @@ export default function VirtualTour360() {
             pitch={hotspot.pitch}
             yaw={hotspot.yaw}
             text={hotspot.text}
-            handleClick={() => handleSceneChange(hotspot.target as keyof typeof tourData)}
+            // --- PERBAIKAN UTAMA DI DUA BARIS INI ---
+            // Pannellum butuh argumen dikirim secara terpisah lewat handleClickArg
+            handleClick={(evt: any, arg: any) => handleSceneChange(arg as keyof typeof tourData)}
+            handleClickArg={hotspot.target}
+            // ----------------------------------------
           />
         ))}
       </Pannellum>
 
-      {/* Tombol Cadangan jika Hotspot di gambar sulit diklik */}
+      {/* Tombol Cadangan (Quick Nav) */}
       <div className="absolute bottom-4 left-4 z-20 flex gap-2">
         <p className="text-[10px] text-white/50 absolute -top-5 left-0">Quick Nav:</p>
         {Object.keys(tourData).map((sceneKey) => (
           <button
             key={sceneKey}
             onClick={() => handleSceneChange(sceneKey as keyof typeof tourData)}
-            className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${
+            className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all shadow-md ${
               activeScene === sceneKey 
               ? 'bg-orange-500 text-white' 
               : 'bg-black/50 text-gray-300 hover:bg-black/80'
