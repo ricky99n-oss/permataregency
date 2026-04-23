@@ -21,7 +21,8 @@ export default function TourModal({ tourUrl, onClose }: { tourUrl: string | null
           </button>
         </div>
         <div className="bg-gray-100">
-          <VirtualTour imageUrl={tourUrl} />
+          {/* PERBAIKAN: Pemanggilan VirtualTour sekarang dibiarkan kosong karena datanya sudah ada di dalam komponen tersebut */}
+          <VirtualTour />
         </div>
       </motion.div>
     </div>

@@ -34,7 +34,7 @@ export default function Home() {
       {/* HERO SECTION */}
       <section id="beranda" className="relative h-screen flex items-center justify-center">
         <div className="absolute inset-0 z-0 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')" }}>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70"></div>
+        <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/40 to-black/70"></div>
         </div>
         <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.3, ease: "easeOut" }} className="relative z-10 text-center px-6 max-w-5xl mx-auto mt-16">
           <p className="text-orange-400 font-medium tracking-[0.3em] uppercase mb-4 text-sm md:text-base">Hunian Eksklusif di Malang</p>
