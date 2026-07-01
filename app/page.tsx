@@ -43,6 +43,20 @@ export default function Home() {
         </motion.div>
       </section>
 
+      {/* 🌟 BANNER PROMO (BARU) 🌟 */}
+      <section className="py-10 bg-orange-500 text-white shadow-inner relative z-20">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+            <h2 className="text-2xl md:text-4xl font-bold mb-3 tracking-wide uppercase drop-shadow-md">
+              🎉 Promo Spesial Terbatas! 🎉
+            </h2>
+            <p className="text-lg md:text-2xl font-medium">
+              Keistimewaan <span className="font-bold text-yellow-300 underline decoration-yellow-400/50">BEBAS SEMUA PAJAK</span> dan <span className="font-bold text-yellow-300 underline decoration-yellow-400/50">FREE SHM</span> untuk setiap pembelian unit rumah.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* TENTANG KAMI */}
       <section id="tentang" className="py-32 px-6 bg-white overflow-hidden">
         <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.8 }} className="max-w-3xl mx-auto text-center">
@@ -77,7 +91,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* MAPS LOKASI PROYEK (BARU) */}
+      {/* MAPS LOKASI PROYEK */}
       <section id="lokasi" className="py-24 px-6 bg-[#F8F9FA] border-t border-gray-200">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-16">

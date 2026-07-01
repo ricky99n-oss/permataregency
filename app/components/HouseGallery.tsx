@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 
-// Definisi tipe data dari Supabase
+// Definisi tipe data yang sesuai dengan tabel 'houses' di Supabase
 interface House {
   id: string;
   type_name: string;
@@ -23,7 +23,7 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
         const { data, error } = await supabase
           .from('houses')
           .select('*')
-          .order('created_at', { ascending: true }); // Mengurutkan dari yang pertama dibuat
+          .order('created_at', { ascending: true }); // Menampilkan urut berdasarkan waktu pembuatan (Tipe 21 -> 25 -> 36 -> 45)
 
         if (error) throw error;
         setHouses(data || []);
@@ -76,18 +76,24 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
                 className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden hover:-translate-y-2 flex flex-col transition-transform"
               >
                 <div className="h-72 overflow-hidden relative bg-gray-200">
-                  {/* Catatan: Gambar sementara menggunakan placeholder sebelum fitur upload selesai */}
+                  {/* Catatan: Gambar sementara menggunakan placeholder sebelum fitur upload di dashboard selesai */}
                   <img 
                     src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" 
                     alt={house.type_name} 
                     className="w-full h-full object-cover" 
                   />
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold tracking-wider text-green-800">TERSEDIA</div>
+                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold tracking-wider text-green-800">
+                    TERSEDIA
+                  </div>
                 </div>
                 
                 <div className="p-8 grow flex flex-col">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{house.type_name}</h3>
-                  <p className="text-xl font-bold text-orange-600 mb-4">{formatRupiah(house.price)}</p>
+                  
+                  {/* Logika Harga: Jika 0 maka tampilkan "Hubungi Marketing", selain itu format ke Rupiah */}
+                  <p className="text-xl font-bold text-orange-600 mb-4">
+                    {house.price === 0 ? 'Hubungi Marketing' : formatRupiah(house.price)}
+                  </p>
                   
                   <div className="mb-8">
                     <p className="text-sm text-gray-500 line-clamp-3">
@@ -96,7 +102,7 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
                   </div>
 
                   <div className="mt-auto flex flex-col gap-3">
-                    {/* Tombol Survey 360 hanya muncul jika fiturnya diaktifkan di admin */}
+                    {/* Tombol Survey 360 hanya muncul jika fiturnya diaktifkan (true) di panel admin */}
                     {house.virtual_tour_enabled && (
                       <button 
                         onClick={() => onOpenTour('https://pannellum.org/images/alma.jpg')} 
@@ -106,6 +112,7 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
                       </button>
                     )}
                     
+                    {/* Link otomatis dengan pesan WhatsApp khusus tiap tipe */}
                     <a 
                       href={`https://wa.me/6288293227900?text=Halo,%20saya%20tertarik%20dengan%20${encodeURIComponent(house.type_name)}`} 
                       target="_blank" 
