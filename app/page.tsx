@@ -4,11 +4,12 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 
-// Impor komponen modular baru
+// Impor komponen modular
 import Navbar from './components/Navbar';
 import HouseGallery from './components/HouseGallery';
-import TourModal from './components/TourModal';
+const TourModal = dynamic(() => import('./components/TourModal'), { ssr: false });
 import Footer from './components/Footer';
+import TestimonialImages from './components/TestimonialImages'; // 🔥 TAMBAHAN BARU: Impor Komponen Foto Testimoni
 
 // Peta Lokasi di-load dinamis agar tidak error di server
 const LocationsMap = dynamic(() => import('./components/LocationsMap'), { 
@@ -43,7 +44,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* 🌟 BANNER PROMO (BARU) 🌟 */}
+      {/* 🌟 BANNER PROMO 🌟 */}
       <section className="py-10 bg-orange-500 text-white shadow-inner relative z-20">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
@@ -88,6 +89,10 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+
+          {/* 🔥 TAMBAHAN BARU: Komponen Galeri Foto Testimoni dipanggil di sini 🔥 */}
+          <TestimonialImages />
+
         </div>
       </section>
 
