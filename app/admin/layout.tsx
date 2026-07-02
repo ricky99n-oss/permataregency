@@ -14,12 +14,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      // Jika tidak ada session dan bukan berada di halaman login, lempar ke halaman login
       if (!session && pathname !== '/admin/login') {
         setIsAuthenticated(false);
         router.push('/admin/login');
       } else if (session && session.user?.email === 'admin@permataregencyofficial.com') {
-        // Jika session valid dan email sesuai
         setIsAuthenticated(true);
         if (pathname === '/admin/login') {
           router.push('/admin');
@@ -31,7 +29,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
     checkAuth();
 
-    // Memantau perubahan status auth (misal saat token kedaluwarsa atau logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session && pathname !== '/admin/login') {
         setIsAuthenticated(false);
@@ -49,12 +46,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     router.push('/admin/login');
   };
 
-  // Jangan tampilkan sidebar atau struktur layout admin jika sedang di halaman login
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
 
-  // Loading state saat memverifikasi session
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500 text-sm">
@@ -89,6 +84,16 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             }`}
           >
             Kelola Produk & Tipe
+          </Link>
+
+          {/* MENU KELOLA FOTO TESTIMONI */}
+          <Link 
+            href="/admin/testimonials" 
+            className={`block px-4 py-2 rounded-lg text-sm font-medium ${
+              pathname.startsWith('/admin/testimonials') ? 'bg-orange-50 text-orange-600' : 'text-gray-600 hover:bg-orange-50 hover:text-orange-600'
+            }`}
+          >
+            Kelola Foto Testimoni
           </Link>
         </nav>
 

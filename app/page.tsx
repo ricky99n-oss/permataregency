@@ -7,14 +7,18 @@ import { motion } from 'framer-motion';
 // Impor komponen modular
 import Navbar from './components/Navbar';
 import HouseGallery from './components/HouseGallery';
-const TourModal = dynamic(() => import('./components/TourModal'), { ssr: false });
 import Footer from './components/Footer';
-import TestimonialImages from './components/TestimonialImages'; // 🔥 TAMBAHAN BARU: Impor Komponen Foto Testimoni
+import TestimonialImages from './components/TestimonialImages'; // Impor Testimoni
 
-// Peta Lokasi di-load dinamis agar tidak error di server
+// Peta Lokasi di-load dinamis
 const LocationsMap = dynamic(() => import('./components/LocationsMap'), { 
   ssr: false,
   loading: () => <div className="w-full h-[500px] bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center text-gray-400">Memuat Peta Lokasi...</div>
+});
+
+// TourModal di-load dinamis agar tidak menyebabkan error "window is not defined" di Vercel
+const TourModal = dynamic(() => import('./components/TourModal'), { 
+  ssr: false 
 });
 
 export default function Home() {
@@ -44,7 +48,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* 🌟 BANNER PROMO 🌟 */}
+      {/* BANNER PROMO */}
       <section className="py-10 bg-orange-500 text-white shadow-inner relative z-20">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
@@ -66,7 +70,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Galeri Tipe Rumah Modular */}
+      {/* Galeri Tipe Rumah */}
       <HouseGallery onOpenTour={setActiveTour} />
 
       {/* KATA MEREKA / TESTIMONI */}
@@ -90,7 +94,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* 🔥 TAMBAHAN BARU: Komponen Galeri Foto Testimoni dipanggil di sini 🔥 */}
+          {/* KOMPONEN FOTO TESTIMONI MUNCUL DI SINI */}
           <TestimonialImages />
 
         </div>
@@ -113,7 +117,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Komponen Footer dan Modal Modular */}
+      {/* Komponen Footer dan Modal */}
       <Footer />
       <TourModal tourUrl={activeTour} onClose={() => setActiveTour(null)} />
 
