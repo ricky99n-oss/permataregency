@@ -1,142 +1,94 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pannellum } from 'pannellum-react';
+import { supabase } from '@/lib/supabaseClient';
 
-export default function VirtualTour360() {
-  const tourData = {
-    teras: {
-      name: "Teras Depan",
-      image: "https://pannellum.org/images/bma-0.jpg",
-      hotspots: [
-        { pitch: -5, yaw: 110, text: "Masuk ke Ruang Tamu →", target: "ruangTamu" },
-        { pitch: 0, yaw: -160, text: "Lihat Halaman Belakang →", target: "halamanBelakang" }
-      ]
-    },
-    ruangTamu: {
-      name: "Ruang Tamu Minimalis",
-      image: "https://pannellum.org/images/bma-1.jpg",
-      hotspots: [
-        { pitch: -10, yaw: 180, text: "← Kembali ke Teras Depan", target: "teras" },
-        { pitch: 5, yaw: -30, text: "Buka Pintu Halaman Belakang →", target: "halamanBelakang" }
-      ]
-    },
-    halamanBelakang: {
-      name: "Halaman Belakang",
-      image: "https://pannellum.org/images/jfk.jpg",
-      hotspots: [
-        { pitch: 0, yaw: 50, text: "← Masuk ke Ruang Tamu", target: "ruangTamu" },
-        { pitch: 0, yaw: -130, text: "← Kembali ke Teras Depan", target: "teras" }
-      ]
-    }
-  };
+export default function VirtualTour360({ houseId }: { houseId: string }) {
+  const [scenes, setScenes] = useState<any[]>([]);
+  const [currentScene, setCurrentScene] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [activeScene, setActiveScene] = useState<keyof typeof tourData>('teras');
-  const currentView = tourData[activeScene];
+  useEffect(() => {
+    const fetch360Images = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('house_images')
+          .select('*')
+          .eq('house_id', houseId)
+          .eq('image_type', '360_PANORAMA')
+          .order('created_at', { ascending: true });
 
-  const handleSceneChange = (sceneTarget: keyof typeof tourData) => {
-    setActiveScene(sceneTarget);
-  };
+        if (error) throw error;
+        setScenes(data || []);
+      } catch (error) {
+        console.error('Gagal memuat gambar 360:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // 🌟 FUNGSI BARU: Membuat UI Tombol Hotspot Kustom agar bisa di-klik
-  const customHotspotTooltip = (hotSpotDiv: any, args: any) => {
-    hotSpotDiv.classList.add('custom-hotspot-icon');
-    
-    // Mencegah teks digambar dobel oleh sistem
-    if (hotSpotDiv.children.length === 0) {
-      const span = document.createElement('span');
-      span.innerHTML = args;
-      span.className = 'custom-tooltip';
-      hotSpotDiv.appendChild(span);
-      
-      // Animasi teks muncul saat di-hover mouse
-      hotSpotDiv.onmouseover = () => { span.style.display = 'block'; };
-      hotSpotDiv.onmouseout = () => { span.style.display = 'none'; };
-    }
-  };
+    if (houseId) fetch360Images();
+  }, [houseId]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-white">
+        <div className="animate-pulse flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+          <p>Memuat Virtual Tour...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (scenes.length === 0) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-gray-400">
+        <p>Belum ada foto 360 untuk tipe rumah ini.</p>
+      </div>
+    );
+  }
+
+  const activeScene = scenes[currentScene];
 
   return (
-    <div className="w-full h-[450px] md:h-[600px] rounded-b-2xl overflow-hidden bg-gray-900 relative">
-      
-      {/* 🌟 CSS BARU: Gaya untuk tombol Oranye kustom dan Teks Tooltip */}
-      <style>{`
-        .custom-hotspot-icon {
-          width: 24px;
-          height: 24px;
-          background-color: #f97316; /* Warna Oranye Permata Regency */
-          border: 2px solid white;
-          border-radius: 50%;
-          cursor: pointer;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-          position: relative;
-          transition: transform 0.2s;
-        }
-        .custom-hotspot-icon:hover {
-          transform: scale(1.2);
-        }
-        .custom-tooltip {
-          display: none;
-          position: absolute;
-          bottom: 35px; /* Teks melayang di atas tombol */
-          left: 50%;
-          transform: translateX(-50%);
-          background-color: rgba(0, 0, 0, 0.8);
-          color: white;
-          padding: 8px 14px;
-          border-radius: 6px;
-          font-size: 13px;
-          font-weight: bold;
-          white-space: nowrap;
-          pointer-events: none; /* PENTING: Agar teks tidak memblokir klik mouse */
-        }
-      `}</style>
-
-      {/* Label Navigasi Aktif */}
-      <div className="absolute top-4 left-4 z-20 bg-green-900/80 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase border border-white/20 shadow-lg">
-        📍 {currentView.name}
-      </div>
-
+    <div className="relative w-full h-full">
+      {/* 
+        Key ditambahkan agar saat pindah scene, Pannellum melakukan remount 
+        dan mencegah glitch pergantian gambar 
+      */}
       <Pannellum
-        key={activeScene} 
+        key={activeScene.id} 
         width="100%"
         height="100%"
-        image={currentView.image}
-        pitch={0}
-        yaw={0}
+        image={activeScene.image_url}
+        pitch={10}
+        yaw={180}
         hfov={110}
-        autoLoad={true}
+        autoLoad
         showZoomCtrl={true}
       >
-        {currentView.hotspots.map((hotspot, index) => (
-          <Pannellum.Hotspot
-            key={`${activeScene}-${index}`}
-            type="custom" // 🌟 UBAH: Dari 'info' menjadi 'custom'
-            pitch={hotspot.pitch}
-            yaw={hotspot.yaw}
-            tooltip={customHotspotTooltip} // Pasang UI kustom kita
-            tooltipArg={hotspot.text}      // Masukkan teks ke UI kustom
-            handleClick={(evt: any, arg: any) => handleSceneChange(arg as keyof typeof tourData)}
-            handleClickArg={hotspot.target}
-          />
-        ))}
       </Pannellum>
 
-      {/* Tombol Cadangan (Quick Nav) */}
-      <div className="absolute bottom-4 left-4 z-20 flex gap-2">
-        <p className="text-[10px] text-white/50 absolute -top-5 left-0">Quick Nav:</p>
-        {Object.keys(tourData).map((sceneKey) => (
-          <button
-            key={sceneKey}
-            onClick={() => handleSceneChange(sceneKey as keyof typeof tourData)}
-            className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all shadow-md ${
-              activeScene === sceneKey 
-              ? 'bg-orange-500 text-white' 
-              : 'bg-black/50 text-gray-300 hover:bg-black/80'
-            }`}
-          >
-            {tourData[sceneKey as keyof typeof tourData].name}
-          </button>
-        ))}
+      {/* Quick Navigation Menu (Seperti di referensi gambarmu) */}
+      <div className="absolute bottom-6 left-6 z-10">
+        <p className="text-white text-xs mb-2 opacity-70">Quick Nav:</p>
+        <div className="flex flex-wrap gap-2">
+          {scenes.map((scene, idx) => (
+            <button
+              key={scene.id}
+              onClick={() => setCurrentScene(idx)}
+              className={`px-4 py-2 text-xs font-bold rounded cursor-pointer transition-colors ${
+                currentScene === idx 
+                  ? 'bg-orange-500 text-white' 
+                  : 'bg-black/70 text-gray-300 hover:bg-black'
+              }`}
+            >
+              {scene.scene_name || `Ruangan ${idx + 1}`}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

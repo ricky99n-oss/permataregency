@@ -1,30 +1,38 @@
 'use client';
-import dynamic from 'next/dynamic';
-import { motion } from 'framer-motion';
 
-const VirtualTour = dynamic(() => import('./VirtualTour360'), { 
-  ssr: false,
-  loading: () => <div className="h-[400px] w-full flex items-center justify-center bg-gray-50 border border-gray-200">Memuat 360 Viewer...</div>
-});
+import VirtualTour360 from './VirtualTour360';
 
-export default function TourModal({ tourUrl, onClose }: { tourUrl: string | null, onClose: () => void }) {
+interface TourModalProps {
+  tourUrl: string | null; // Pada kasus ini, ini adalah houseId yang dilempar dari HouseGallery
+  onClose: () => void;
+}
+
+export default function TourModal({ tourUrl, onClose }: TourModalProps) {
   if (!tourUrl) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="absolute inset-0 bg-white/80 backdrop-blur-md" onClick={onClose}></div>
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white w-full max-w-6xl rounded-2xl shadow-2xl relative z-10 overflow-hidden border border-gray-100 flex flex-col">
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 tracking-wide uppercase">Virtual Tour 360°</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-900 transition p-2">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-8">
+      <div className="bg-white rounded-2xl overflow-hidden w-full max-w-6xl h-[80vh] flex flex-col relative shadow-2xl">
+        
+        {/* Header Modal */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900 tracking-wide">VIRTUAL TOUR 360°</h3>
+          <button 
+            onClick={onClose} 
+            className="text-gray-400 hover:text-red-500 transition cursor-pointer"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
-        <div className="bg-gray-100">
-          {/* PERBAIKAN: Pemanggilan VirtualTour sekarang dibiarkan kosong karena datanya sudah ada di dalam komponen tersebut */}
-          <VirtualTour />
+
+        {/* Area Pannellum 360 */}
+        <div className="flex-1 bg-gray-900 relative">
+          <VirtualTour360 houseId={tourUrl} />
         </div>
-      </motion.div>
+
+      </div>
     </div>
   );
 }

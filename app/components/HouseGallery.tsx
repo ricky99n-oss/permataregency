@@ -6,22 +6,24 @@ import { supabase } from '@/lib/supabaseClient';
 
 interface House {
   id: string;
-  type_name: string | any;
-  price: number | any;
-  description: string | any;
+  type_name: any;
+  price: any;
+  description: any;
   virtual_tour_enabled: boolean;
+  house_images?: { id: string, image_url: string, image_type: string }[];
 }
 
-export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string) => void }) {
+export default function HouseGallery({ onOpenTour }: { onOpenTour: (houseId: string) => void }) {
   const [houses, setHouses] = useState<House[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchHouses = async () => {
       try {
+        // Tarik data rumah SEKALIGUS dengan gambar-gambarnya
         const { data, error } = await supabase
           .from('houses')
-          .select('*')
+          .select('*, house_images(id, image_url, image_type)')
           .order('created_at', { ascending: true });
 
         if (error) throw error;
@@ -37,7 +39,6 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
   }, []);
 
   const formatRupiah = (price: any) => {
-    // Memastikan price adalah angka yang valid sebelum di-format
     const validPrice = Number(price) || 0;
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -46,7 +47,6 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
     }).format(validPrice);
   };
 
-  // Fungsi pengaman agar React tidak crash jika menerima Object
   const safeString = (value: any, fallback: string = '') => {
     if (typeof value === 'string' || typeof value === 'number') return value;
     return fallback;
@@ -68,16 +68,17 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
             </div>
           </div>
         ) : houses.length === 0 ? (
-          <div className="text-center text-gray-500 py-10">
-            Belum ada data tipe hunian yang tersedia.
-          </div>
+          <div className="text-center text-gray-500 py-10">Belum ada data tipe hunian.</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {houses.map((house, index) => {
-              // Ambil data dengan aman menggunakan safeString
               const safeTypeName = safeString(house.type_name, 'Tipe Rumah');
               const safePrice = Number(house.price) || 0;
               const safeDescription = safeString(house.description, 'Deskripsi belum tersedia.');
+              
+              // Cari foto galeri pertama untuk dijadikan sampul, jika tidak ada pakai placeholder
+              const coverImage = house.house_images?.find(img => img.image_type === 'GALLERY')?.image_url 
+                || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80';
               
               return (
                 <motion.div 
@@ -89,11 +90,7 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
                   className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden hover:-translate-y-2 flex flex-col transition-transform"
                 >
                   <div className="h-72 overflow-hidden relative bg-gray-200">
-                    <img 
-                      src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" 
-                      alt={String(safeTypeName)} 
-                      className="w-full h-full object-cover" 
-                    />
+                    <img src={coverImage} alt={String(safeTypeName)} className="w-full h-full object-cover" />
                     <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold tracking-wider text-green-800">
                       TERSEDIA
                     </div>
@@ -107,15 +104,13 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
                     </p>
                     
                     <div className="mb-8">
-                      <p className="text-sm text-gray-500 line-clamp-3">
-                        {safeDescription}
-                      </p>
+                      <p className="text-sm text-gray-500 line-clamp-3">{safeDescription}</p>
                     </div>
 
                     <div className="mt-auto flex flex-col gap-3">
                       {house.virtual_tour_enabled && (
                         <button 
-                          onClick={() => onOpenTour('https://pannellum.org/images/alma.jpg')} 
+                          onClick={() => onOpenTour(house.id)} 
                           className="w-full bg-orange-500 text-white py-3.5 rounded-lg font-bold text-sm tracking-wide hover:bg-orange-600 transition flex justify-center items-center gap-2"
                         >
                           SURVEY 360° ONLINE
