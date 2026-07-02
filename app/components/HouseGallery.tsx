@@ -21,9 +21,11 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (houseId: str
     const fetchHouses = async () => {
       try {
         // Tarik data rumah SEKALIGUS dengan gambar-gambarnya
+        // Pastikan diurutkan berdasarkan 'display_order' (hasil drag & drop)
         const { data, error } = await supabase
           .from('houses')
           .select('*, house_images(id, image_url, image_type)')
+          .order('display_order', { ascending: true })
           .order('created_at', { ascending: true });
 
         if (error) throw error;
