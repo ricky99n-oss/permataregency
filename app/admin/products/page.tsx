@@ -62,7 +62,6 @@ export default function ProductsPage() {
     }).format(validPrice);
   };
 
-  // Fungsi pengaman agar tabel admin tidak crash
   const safeString = (value: any) => {
     if (typeof value === 'string' || typeof value === 'number') return value;
     return "⚠️ Data Corrupt";
@@ -119,7 +118,15 @@ export default function ProductsPage() {
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Tidak Aktif</span>
                       )}
                     </td>
+                    
+                    {/* TOMBOL EDIT DAN HAPUS DIKEMBALIKAN DI SINI */}
                     <td className="px-6 py-4 text-sm text-right space-x-3">
+                      <Link 
+                        href={`/admin/products/${house.id}`}
+                        className="text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        Edit
+                      </Link>
                       <button 
                         onClick={() => handleDelete(house.id, house.type_name)}
                         className="text-red-600 hover:text-red-800 font-medium cursor-pointer"
@@ -127,6 +134,7 @@ export default function ProductsPage() {
                         Hapus
                       </button>
                     </td>
+                    
                   </tr>
                 ))
               )}
