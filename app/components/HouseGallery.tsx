@@ -4,12 +4,11 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabaseClient';
 
-// Definisi tipe data yang sesuai dengan tabel 'houses' di Supabase
 interface House {
   id: string;
-  type_name: string;
-  price: number;
-  description: string;
+  type_name: string | any;
+  price: number | any;
+  description: string | any;
   virtual_tour_enabled: boolean;
 }
 
@@ -23,7 +22,7 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
         const { data, error } = await supabase
           .from('houses')
           .select('*')
-          .order('created_at', { ascending: true }); // Menampilkan urut berdasarkan waktu pembuatan (Tipe 21 -> 25 -> 36 -> 45)
+          .order('created_at', { ascending: true });
 
         if (error) throw error;
         setHouses(data || []);
@@ -37,12 +36,20 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
     fetchHouses();
   }, []);
 
-  const formatRupiah = (price: number) => {
+  const formatRupiah = (price: any) => {
+    // Memastikan price adalah angka yang valid sebelum di-format
+    const validPrice = Number(price) || 0;
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
-    }).format(price);
+    }).format(validPrice);
+  };
+
+  // Fungsi pengaman agar React tidak crash jika menerima Object
+  const safeString = (value: any, fallback: string = '') => {
+    if (typeof value === 'string' || typeof value === 'number') return value;
+    return fallback;
   };
 
   return (
@@ -66,65 +73,68 @@ export default function HouseGallery({ onOpenTour }: { onOpenTour: (url: string)
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {houses.map((house, index) => (
-              <motion.div 
-                key={house.id} 
-                initial={{ opacity: 0, y: 50 }} 
-                whileInView={{ opacity: 1, y: 0 }} 
-                viewport={{ once: true, amount: 0.1 }} 
-                transition={{ duration: 0.6, delay: index * 0.1 }} 
-                className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden hover:-translate-y-2 flex flex-col transition-transform"
-              >
-                <div className="h-72 overflow-hidden relative bg-gray-200">
-                  {/* Catatan: Gambar sementara menggunakan placeholder sebelum fitur upload di dashboard selesai */}
-                  <img 
-                    src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" 
-                    alt={house.type_name} 
-                    className="w-full h-full object-cover" 
-                  />
-                  <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold tracking-wider text-green-800">
-                    TERSEDIA
+            {houses.map((house, index) => {
+              // Ambil data dengan aman menggunakan safeString
+              const safeTypeName = safeString(house.type_name, 'Tipe Rumah');
+              const safePrice = Number(house.price) || 0;
+              const safeDescription = safeString(house.description, 'Deskripsi belum tersedia.');
+              
+              return (
+                <motion.div 
+                  key={house.id || index} 
+                  initial={{ opacity: 0, y: 50 }} 
+                  whileInView={{ opacity: 1, y: 0 }} 
+                  viewport={{ once: true, amount: 0.1 }} 
+                  transition={{ duration: 0.6, delay: index * 0.1 }} 
+                  className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden hover:-translate-y-2 flex flex-col transition-transform"
+                >
+                  <div className="h-72 overflow-hidden relative bg-gray-200">
+                    <img 
+                      src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" 
+                      alt={String(safeTypeName)} 
+                      className="w-full h-full object-cover" 
+                    />
+                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-bold tracking-wider text-green-800">
+                      TERSEDIA
+                    </div>
                   </div>
-                </div>
-                
-                <div className="p-8 grow flex flex-col">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{house.type_name}</h3>
                   
-                  {/* Logika Harga: Jika 0 maka tampilkan "Hubungi Marketing", selain itu format ke Rupiah */}
-                  <p className="text-xl font-bold text-orange-600 mb-4">
-                    {house.price === 0 ? 'Hubungi Marketing' : formatRupiah(house.price)}
-                  </p>
-                  
-                  <div className="mb-8">
-                    <p className="text-sm text-gray-500 line-clamp-3">
-                      {house.description || 'Deskripsi hunian belum tersedia.'}
-                    </p>
-                  </div>
-
-                  <div className="mt-auto flex flex-col gap-3">
-                    {/* Tombol Survey 360 hanya muncul jika fiturnya diaktifkan (true) di panel admin */}
-                    {house.virtual_tour_enabled && (
-                      <button 
-                        onClick={() => onOpenTour('https://pannellum.org/images/alma.jpg')} 
-                        className="w-full bg-orange-500 text-white py-3.5 rounded-lg font-bold text-sm tracking-wide hover:bg-orange-600 transition flex justify-center items-center gap-2"
-                      >
-                        SURVEY 360° ONLINE
-                      </button>
-                    )}
+                  <div className="p-8 grow flex flex-col">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{safeTypeName}</h3>
                     
-                    {/* Link otomatis dengan pesan WhatsApp khusus tiap tipe */}
-                    <a 
-                      href={`https://wa.me/6288293227900?text=Halo,%20saya%20tertarik%20dengan%20${encodeURIComponent(house.type_name)}`} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                      className="w-full bg-white text-orange-500 border border-orange-500 py-3.5 rounded-lg font-bold text-sm tracking-wide hover:bg-orange-50 transition flex justify-center items-center gap-2"
-                    >
-                      CONTACT MARKETING
-                    </a>
+                    <p className="text-xl font-bold text-orange-600 mb-4">
+                      {safePrice === 0 ? 'Hubungi Marketing' : formatRupiah(safePrice)}
+                    </p>
+                    
+                    <div className="mb-8">
+                      <p className="text-sm text-gray-500 line-clamp-3">
+                        {safeDescription}
+                      </p>
+                    </div>
+
+                    <div className="mt-auto flex flex-col gap-3">
+                      {house.virtual_tour_enabled && (
+                        <button 
+                          onClick={() => onOpenTour('https://pannellum.org/images/alma.jpg')} 
+                          className="w-full bg-orange-500 text-white py-3.5 rounded-lg font-bold text-sm tracking-wide hover:bg-orange-600 transition flex justify-center items-center gap-2"
+                        >
+                          SURVEY 360° ONLINE
+                        </button>
+                      )}
+                      
+                      <a 
+                        href={`https://wa.me/6288293227900?text=Halo,%20saya%20tertarik%20dengan%20${encodeURIComponent(String(safeTypeName))}`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="w-full bg-white text-orange-500 border border-orange-500 py-3.5 rounded-lg font-bold text-sm tracking-wide hover:bg-orange-50 transition flex justify-center items-center gap-2"
+                      >
+                        CONTACT MARKETING
+                      </a>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
